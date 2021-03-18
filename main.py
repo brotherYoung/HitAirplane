@@ -3,6 +3,7 @@ import sys
 import traceback
 import myplane
 import enemy
+import bullet
 
 from pygame.locals import *
 
@@ -16,6 +17,10 @@ screen = pygame.display.set_mode(bg_size)
 pygame.display.set_caption("飞机大战")
 
 background = pygame.image.load("images/background.png").convert()
+
+BLACK = (0, 0, 0)
+GREEN = (0, 255, 0)
+RED = (255, 0, 0)
 
 # 载入游戏音乐
 pygame.mixer.music.load("sounds/game_music.ogg")
@@ -83,12 +88,18 @@ def main():
     large_enemies = pygame.sprite.Group()
     add_large_enemies(large_enemies, enemies, 2)
 
+    # 生成普通子弹
+    bullet1 = []
+    bullet1_index = 0
+    BULLET1_NUM = 4
+    for i in range(BULLET1_NUM):
+        bullet1.append(bullet.Bullet1(me.rect.midtop))
+
     # 中弹图片序列
     e1_destroy_index = 0
     e2_destroy_index = 0
     e3_destroy_index = 0
     me_destroy_index = 0
-
 
     switch_image = True
     delay = 100
@@ -114,14 +125,54 @@ def main():
 
         screen.blit(background, (0, 0))
 
+        # 绘制子弹
+        if not(delay % 10):
+            bullet1[bullet1_index].reset(me.rect.midtop)
+            bullet1_index = (bullet1_index + 1) % BULLET1_NUM
+        # 检测子弹是否击中
+        for b in bullet1:
+            if b.active:
+                b.move()
+                screen.blit(b.image, b.rect)
+                enemy_hit = pygame.sprite.spritecollide(b, enemies, False, pygame.sprite.collide_mask)
+                if enemy_hit:
+                    b.active = False
+                    for e in enemy_hit:
+                        if e in mid_enemies or e in large_enemies:
+                            e.hit = True
+                            e.energy -= 1
+                            if e.energy == 0:
+                                e.active = False
+                        else:
+                            e.active = False
+
         # 绘制大型机
         for each in large_enemies:
             if each.active:
                 each.move()
-                if switch_image:
-                    screen.blit(each.image1, each.rect)
+                if each.hit:
+                    # 绘制被击中特效
+                    screen.blit(each.image_hit, each.rect)
+                    each.hit = False
                 else:
-                    screen.blit(each.image2, each.rect)
+                    if switch_image:
+                        screen.blit(each.image1, each.rect)
+                    else:
+                        screen.blit(each.image2, each.rect)
+
+                # 绘制血槽
+                pygame.draw.line(screen, BLACK, (each.rect.left, each.rect.top - 5),
+                                 (each.rect.right, each.rect.top - 5), 2)
+
+                # 当生命大于 20 % 显示绿色，否则红色
+                energy_remain = each.energy / enemy.LargeEnemy.energy
+                if energy_remain > 0.2:
+                    energy_color = GREEN
+                else:
+                    energy_color = RED
+                pygame.draw.line(screen, energy_color, (each.rect.left, each.rect.top - 5),
+                                 (each.rect.left + each.rect.width * energy_remain, each.rect.top - 5), 2)
+
                 # 出现时候的音效
                 if each.rect.bottom == -50:
                     enemy3_fly_sound.play(-1)
@@ -140,7 +191,26 @@ def main():
         for each in mid_enemies:
             if each.active:
                 each.move()
-                screen.blit(each.image, each.rect)
+                if each.hit:
+                    # 绘制被击中特效
+                    screen.blit(each.image_hit, each.rect)
+                    each.hit = False
+                else:
+                    screen.blit(each.image, each.rect)
+
+                # 绘制血槽
+                pygame.draw.line(screen, BLACK, (each.rect.left, each.rect.top - 5),
+                                 (each.rect.right, each.rect.top - 5), 2)
+
+                # 当生命大于 20 % 显示绿色，否则红色
+                energy_remain = each.energy / enemy.MidEnemy.energy
+                if energy_remain > 0.2:
+                    energy_color = GREEN
+                else:
+                    energy_color = RED
+                pygame.draw.line(screen, energy_color, (each.rect.left, each.rect.top - 5),
+                                 (each.rect.left + each.rect.width * energy_remain, each.rect.top - 5), 2)
+
             else:
                 # 毁灭
                 if not (delay % 3):
