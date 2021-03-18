@@ -111,7 +111,6 @@ def main():
             if event.type == QUIT:
                 pygame.quit()
                 sys.exit()
-
         # 检测用户按键操作
         key_pressed = pygame.key.get_pressed()
         if key_pressed[K_w] or key_pressed[K_UP]:
@@ -220,6 +219,7 @@ def main():
                     e2_destroy_index = (e2_destroy_index + 1) % 4
                     if e2_destroy_index == 0:
                         each.reset()
+
         # 绘制小型敌机
         for each in small_enemies:
             if each.active:
@@ -238,7 +238,7 @@ def main():
         # 碰撞检测 ( pygame.sprite.collide_mask 表示将图片的透明部分删除后做碰撞检测 )
         enemies_down = pygame.sprite.spritecollide(me, enemies, False, pygame.sprite.collide_mask)
         if enemies_down:
-            # me.active = False
+            me.active = False
             for e in enemies_down:
                 e.active = False
 
@@ -254,15 +254,18 @@ def main():
             if not (delay % 3):
                 screen.blit(me.destroy_images[me_destroy_index], me.rect)
                 me_destroy_index = (me_destroy_index + 1) % 4
-                if e2_destroy_index == 0:
-                    print("Game Over")
-                    pygame.quit()
+                if me_destroy_index == 0:
+                    print()
+                    running = False
 
         if not (delay % 5):
             switch_image = not switch_image
+
         delay -= 1
+
         if not delay:
             delay = 100
+
         pygame.display.flip()
         clock.tick(60)
 
@@ -273,6 +276,6 @@ if __name__ == "__main__":
     except SystemExit:
         pass
     except Exception:
-        traceback.print_exception()
+        traceback.print_exc()
         pygame.quit()
         input()
