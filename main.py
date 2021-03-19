@@ -75,7 +75,7 @@ def main():
 
     # 生成我方飞机
     me = myplane.MyPlane(bg_size)
-    # 生成地方飞机
+    # 生成敌方飞机
     enemies = pygame.sprite.Group()
 
     # 小型飞机
