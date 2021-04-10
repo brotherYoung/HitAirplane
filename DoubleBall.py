@@ -43,7 +43,7 @@ pygame.init()
 screen = pygame.display.set_mode([640, 480])
 clock = pygame.time.Clock()
 ball_group = pygame.sprite.Group()
-lives = 3
+lives = 4
 add_balls(ball_group, lives)
 paddle = MyPaddle([270, 400])
 
@@ -69,14 +69,15 @@ while running:
             screen.blit(ball.image, ball.rect)
             screen.blit(paddle.image, paddle.rect)
             screen.blit(score_surf, score_pos)
-            for i in range(lives):
+            for i in range(lives - 1):
                 width = screen.get_width()
                 screen.blit(ball.image, [width - 40 * i, 20])
             pygame.display.flip()
         if ball.rect.top >= screen.get_rect().bottom:
             # lose a life if the ball hits the bottom
             lives = lives - 1
-            if lives == -1:
+            print(lives)
+            if lives == 0:
                 final_text1 = "Game Over"
                 final_text2 = "Your final score is:  " + str(score)
                 ft1_font = pygame.font.Font(None, 70)
@@ -90,9 +91,9 @@ while running:
                 pygame.display.flip()
                 done = True
             else:  # wait 2 seconds, then start the next ball
-                if lives > 0:
+                if lives > 1:
                     ball.rect.topleft = [50, 50]
-                if lives == 0:
+                if lives == 1:
                     ball_group.remove(ball)
     balls_collide = pygame.sprite.spritecollide(paddle, ball_group, False)
     if balls_collide:
